@@ -13,6 +13,7 @@ import { Board } from './boards.model';
 import { BoardsService } from './boards.service';
 import { CreateBoardDTO } from './dto/create-board.dto';
 import { UpdateBoardDTO } from './dto/update-board.dto';
+import { BoardStatusValidationPipe } from './pipes/board-status-validation.pipe';
 
 @Controller('boards')
 export class BoardsController {
@@ -40,7 +41,13 @@ export class BoardsController {
   }
 
   @Patch('')
-  updateBoardStatus(@Body() UpdateBoardDTO: UpdateBoardDTO): Board {
+  updateBoardStatus(
+    @Body(BoardStatusValidationPipe) UpdateBoardDTO: UpdateBoardDTO,
+  ): Board {
     return this.BoardsService.updateBoardStatus(UpdateBoardDTO);
   }
+  /**
+   * Custom Pipe를 DTO안에 넣는 방법
+   * controller에 DTO를 사용한 부분에 직접 Pipe를 넣는다.
+   */
 }
