@@ -1,49 +1,36 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Board, BoardStatus } from './boards.model';
+import { BoardStatus } from './boards.model';
 import { v4 as uuid } from 'uuid';
 import { CreateBoardDTO } from './dto/create-board.dto';
 import { UpdateBoardDTO } from './dto/update-board.dto';
+import { BoardRepository } from './boards.repository';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Board } from './boards.entity';
 
 @Injectable()
 export class BoardsService {
-  private boards: Board[] = [];
+  constructor(
+    @InjectRepository(BoardRepository)
+    private boardRepository: BoardRepository,
+  ) {}
 
-  getAllBoards(): Board[] {
-    return this.boards;
+  createBoard(createBoardDTO: CreateBoardDTO): Promise<Board> {
+    return this.boardRepository.createBoard(createBoardDTO);
   }
 
-  createBoard(createBoardDTO: CreateBoardDTO): Board[] {
-    const { title, description } = createBoardDTO;
-    const board: Board = {
-      id: uuid(),
-      title,
-      description,
-      status: BoardStatus.PUBLIC,
-    };
-    this.boards.push(board);
-    return this.boards;
+  getAllBoards(): Promise<Board[]> {
+    return this.boardRepository.getAllBoards();
   }
 
-  getBoardById(id: string): Board {
-    const found = this.boards.find((board) => board.id === id);
-
-    if (found) {
-      return found;
-    }
-
-    throw new NotFoundException();
+  getBoardById(id: number): Promise<Board> {
+    return this.boardRepository.getBoardById(id);
   }
 
-  deleteBoard(id: string): Board[] {
-    const found = this.getBoardById(id);
-    this.boards = this.boards.filter((board) => board.id !== found.id);
-    return this.boards;
+  deleteBoard(id: number) {
+    return this.boardRepository.deleteBoard(id);
   }
 
-  updateBoardStatus(UpdateBoardDTO: UpdateBoardDTO): Board {
-    const { id, status } = UpdateBoardDTO;
-    const board = this.getBoardById(id);
-    board.status = status;
-    return board;
+  updateBoardStatus(updateBoardDTO: UpdateBoardDTO): Promise<Board> {
+    return this.boardRepository.updateBoardStatus(updateBoardDTO);
   }
 }

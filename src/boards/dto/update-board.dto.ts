@@ -4,6 +4,6 @@ import { BoardStatusValidationPipe } from '../pipes/board-status-validation.pipe
 
 export class UpdateBoardDTO {
   @Validate(BoardStatusValidationPipe)
-  id: string;
+  id: number;
   status: BoardStatus;
 }
