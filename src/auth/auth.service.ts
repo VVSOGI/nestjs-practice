@@ -22,4 +22,8 @@ export class AuthService {
   deleteUser(id: number): Promise<void> {
     return this.userRepository.deleteUser(id);
   }
+
+  signIn(authCredentialsDto: AuthCredentialsDto): Promise<string> {
+    return this.userRepository.signIn(authCredentialsDto);
+  }
 }

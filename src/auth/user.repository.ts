@@ -1,4 +1,10 @@
-import { NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  InternalServerErrorException,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { compare, genSalt, hash } from 'bcryptjs';
 import { EntityRepository, Repository } from 'typeorm';
 import { AuthCredentialsDto } from './dto/auth-credential.dto';
 import { User } from './user.entity';
@@ -7,8 +13,19 @@ import { User } from './user.entity';
 export class UserRepository extends Repository<User> {
   async createUser(authCredentialsDto: AuthCredentialsDto): Promise<void> {
     const { username, password } = authCredentialsDto;
-    const user = this.create({ username, password });
-    await this.save(user);
+
+    const salt = await genSalt();
+    const hashedPassword = await hash(password, salt);
+    const user = this.create({ username, password: hashedPassword });
+    try {
+      await this.save(user);
+    } catch (error) {
+      if (error.code === '23505') {
+        throw new ConflictException('Existing username');
+      } else {
+        throw new InternalServerErrorException();
+      }
+    }
   }
 
   async getUserById(id: number): Promise<User> {
@@ -24,5 +41,16 @@ export class UserRepository extends Repository<User> {
   async deleteUser(id: number): Promise<void> {
     const { id: findId } = await this.getUserById(id);
     this.delete(findId);
+  }
+
+  async signIn(authCredentialsDto: AuthCredentialsDto): Promise<string> {
+    const { username, password } = authCredentialsDto;
+    const user = await this.findOne({ username });
+
+    if (user && (await compare(password, user.password))) {
+      return 'Login success';
+    } else {
+      throw new UnauthorizedException('Login failed');
+    }
   }
 }

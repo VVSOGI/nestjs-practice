@@ -23,6 +23,12 @@ export class AuthController {
     return this.authService.createUser(authCredentialsDto);
   }
 
+  @Post('/signin')
+  @UsePipes(ValidationPipe)
+  signIn(@Body() authCredentialsDto: AuthCredentialsDto): Promise<string> {
+    return this.authService.signIn(authCredentialsDto);
+  }
+
   @Get('/:id')
   getUserById(@Param('id') id: number): Promise<User> {
     return this.authService.getUserById(id);
