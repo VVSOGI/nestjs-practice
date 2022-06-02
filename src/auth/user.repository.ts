@@ -4,6 +4,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { compare, genSalt, hash } from 'bcryptjs';
 import { EntityRepository, Repository } from 'typeorm';
 import { AuthCredentialsDto } from './dto/auth-credential.dto';
@@ -43,12 +44,18 @@ export class UserRepository extends Repository<User> {
     this.delete(findId);
   }
 
-  async signIn(authCredentialsDto: AuthCredentialsDto): Promise<string> {
+  async signIn(
+    authCredentialsDto: AuthCredentialsDto,
+    jwtService: JwtService,
+  ): Promise<{ accessToken: string }> {
     const { username, password } = authCredentialsDto;
     const user = await this.findOne({ username });
 
     if (user && (await compare(password, user.password))) {
-      return 'Login success';
+      const payload = { username };
+      const accessToken = await jwtService.sign(payload);
+
+      return { accessToken };
     } else {
       throw new UnauthorizedException('Login failed');
     }

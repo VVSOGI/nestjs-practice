@@ -5,9 +5,12 @@ import {
   Get,
   Param,
   Post,
+  Req,
+  UseGuards,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { AuthCredentialsDto } from './dto/auth-credential.dto';
 import { User } from './user.entity';
@@ -25,7 +28,9 @@ export class AuthController {
 
   @Post('/signin')
   @UsePipes(ValidationPipe)
-  signIn(@Body() authCredentialsDto: AuthCredentialsDto): Promise<string> {
+  signIn(
+    @Body() authCredentialsDto: AuthCredentialsDto,
+  ): Promise<{ accessToken: string }> {
     return this.authService.signIn(authCredentialsDto);
   }
 
@@ -37,5 +42,11 @@ export class AuthController {
   @Delete('/:id')
   deleteUser(@Param('id') id: number): Promise<void> {
     return this.authService.deleteUser(id);
+  }
+
+  @Post('/authTest')
+  @UseGuards(AuthGuard())
+  test(@Req() req) {
+    console.log('req', req);
   }
 }

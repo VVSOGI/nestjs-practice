@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AuthCredentialsDto } from './dto/auth-credential.dto';
 import { User } from './user.entity';
@@ -9,6 +10,7 @@ export class AuthService {
   constructor(
     @InjectRepository(UserRepository)
     private userRepository: UserRepository,
+    private jwtService: JwtService,
   ) {}
 
   createUser(authCredentialsDto: AuthCredentialsDto): Promise<void> {
@@ -23,7 +25,9 @@ export class AuthService {
     return this.userRepository.deleteUser(id);
   }
 
-  signIn(authCredentialsDto: AuthCredentialsDto): Promise<string> {
-    return this.userRepository.signIn(authCredentialsDto);
+  signIn(
+    authCredentialsDto: AuthCredentialsDto,
+  ): Promise<{ accessToken: string }> {
+    return this.userRepository.signIn(authCredentialsDto, this.jwtService);
   }
 }
